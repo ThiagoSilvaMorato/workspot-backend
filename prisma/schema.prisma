@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid(7))
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+  workspots     WorkSpot[]
+  ratings       Rating[]
+  reviews       Review[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid(7))
+  token     String    @unique
+  familyId  String    @map("family_id")
+  userId    String    @map("user_id")
+  usedAt    DateTime? @map("used_at")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model WorkSpot {
+  id           String  @id @default(uuid(7))
+  name         String
+  description  String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String  @map("zip_code")
+  country      String  @default("BR")
+  latitude     Decimal @db.Decimal(10, 8)
+  longitude    Decimal @db.Decimal(11, 8)
+  createdById  String  @map("created_by_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdBy User          @relation(fields: [createdById], references: [id])
+  tags      WorkSpotTag[]
+  ratings   Rating[]
+  reviews   Review[]
+
+  @@index([city])
+  @@map("workspots")
+}
+
+model Tag {
+  id   String @id @default(uuid(7))
+  name String @unique
+  slug String @unique
+
+  workspots WorkSpotTag[]
+
+  @@map("tags")
+}
+
+model WorkSpotTag {
+  workspotId String @map("workspot_id")
+  tagId      String @map("tag_id")
+
+  workspot WorkSpot @relation(fields: [workspotId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([workspotId, tagId])
+  @@map("workspot_tags")
+}
+
+model Rating {
+  id           String @id @default(uuid(7))
+  workspotId   String @map("workspot_id")
+  userId       String @map("user_id")
+  overall      Int
+  wifi         Int?
+  noise        Int?
+  powerOutlets Int?   @map("power_outlets")
+  comfort      Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspot WorkSpot @relation(fields: [workspotId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspotId, userId])
+  @@map("ratings")
+}
+
+model Review {
+  id         String @id @default(uuid(7))
+  workspotId String @map("workspot_id")
+  userId     String @map("user_id")
+  content    String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspot WorkSpot @relation(fields: [workspotId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspotId, userId])
+  @@map("reviews")
+}
