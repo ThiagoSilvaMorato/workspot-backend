@@ -11,7 +11,6 @@ import { tagsRoutes } from "./modules/tags/routes/tags.routes.js";
 import { workSpotsRoutes } from "./modules/workspots/routes/workspots.routes.js";
 import { ratingsRoutes } from "./modules/ratings/routes/ratings.routes.js";
 import { reviewsRoutes } from "./modules/reviews/routes/reviews.routes.js";
-import "dotenv/config";
 
 export function buildApp() {
   const app = fastify({
