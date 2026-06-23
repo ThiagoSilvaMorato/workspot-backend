@@ -24,6 +24,8 @@ export async function workSpotsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['WorkSpots'],
+        summary: 'Listar espaços de trabalho',
         querystring: listWorkSpotsQuerySchema,
         response: { 200: listWorkSpotsResponseSchema },
       },
@@ -35,6 +37,8 @@ export async function workSpotsRoutes(app: FastifyInstance) {
     '/:id',
     {
       schema: {
+        tags: ['WorkSpots'],
+        summary: 'Detalhe do espaço de trabalho',
         params: workSpotIdParamsSchema,
         response: { 200: getWorkSpotResponseSchema },
       },
@@ -47,6 +51,9 @@ export async function workSpotsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['WorkSpots'],
+        summary: 'Criar espaço de trabalho',
+        security: [{ bearerAuth: [] }],
         body: createWorkSpotBodySchema,
         response: { 201: createWorkSpotResponseSchema },
       },
@@ -59,6 +66,9 @@ export async function workSpotsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['WorkSpots'],
+        summary: 'Atualizar espaço de trabalho',
+        security: [{ bearerAuth: [] }],
         params: workSpotIdParamsSchema,
         body: updateWorkSpotBodySchema,
         response: { 200: updateWorkSpotResponseSchema },
@@ -72,6 +82,9 @@ export async function workSpotsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['WorkSpots'],
+        summary: 'Remover espaço de trabalho',
+        security: [{ bearerAuth: [] }],
         params: workSpotIdParamsSchema,
       },
     },

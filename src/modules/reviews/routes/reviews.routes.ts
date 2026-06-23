@@ -23,6 +23,8 @@ export async function reviewsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Reviews'],
+        summary: 'Listar reviews do espaço de trabalho',
         params: workspotIdParamsSchema,
         querystring: listReviewsQuerySchema,
         response: { 200: listReviewsResponseSchema },
@@ -36,6 +38,9 @@ export async function reviewsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['Reviews'],
+        summary: 'Criar review',
+        security: [{ bearerAuth: [] }],
         params: workspotIdParamsSchema,
         body: createReviewBodySchema,
         response: { 201: reviewResponseWrapperSchema },
@@ -49,6 +54,9 @@ export async function reviewsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['Reviews'],
+        summary: 'Atualizar review',
+        security: [{ bearerAuth: [] }],
         params: reviewIdParamsSchema,
         body: updateReviewBodySchema,
         response: { 200: reviewResponseWrapperSchema },
@@ -62,6 +70,9 @@ export async function reviewsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['Reviews'],
+        summary: 'Remover review',
+        security: [{ bearerAuth: [] }],
         params: reviewIdParamsSchema,
       },
     },

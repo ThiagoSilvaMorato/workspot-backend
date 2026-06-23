@@ -21,6 +21,8 @@ export async function authRoutes(app: FastifyInstance) {
     '/register',
     {
       schema: {
+        tags: ['Auth'],
+        summary: 'Registrar novo usuário',
         body: registerBodySchema,
         response: { 201: registerResponseSchema },
       },
@@ -32,6 +34,8 @@ export async function authRoutes(app: FastifyInstance) {
     '/login',
     {
       schema: {
+        tags: ['Auth'],
+        summary: 'Autenticar usuário',
         body: loginBodySchema,
         response: { 200: loginResponseSchema },
       },
@@ -43,6 +47,8 @@ export async function authRoutes(app: FastifyInstance) {
     '/refresh',
     {
       schema: {
+        tags: ['Auth'],
+        summary: 'Renovar tokens de acesso',
         body: refreshBodySchema,
         response: { 200: refreshResponseSchema },
       },
@@ -55,6 +61,9 @@ export async function authRoutes(app: FastifyInstance) {
     {
       onRequest: [app.authenticate],
       schema: {
+        tags: ['Auth'],
+        summary: 'Revogar sessão (logout)',
+        security: [{ bearerAuth: [] }],
         body: logoutBodySchema,
       },
     },

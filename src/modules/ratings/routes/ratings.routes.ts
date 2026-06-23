@@ -23,6 +23,9 @@ export async function ratingsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Ratings'],
+        summary: 'Criar avaliação',
+        security: [{ bearerAuth: [] }],
         params: workspotIdParamsSchema,
         body: createRatingBodySchema,
         response: { 201: ratingResponseWrapperSchema },
@@ -35,6 +38,9 @@ export async function ratingsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Ratings'],
+        summary: 'Atualizar avaliação',
+        security: [{ bearerAuth: [] }],
         params: workspotIdParamsSchema,
         body: updateRatingBodySchema,
         response: { 200: ratingResponseWrapperSchema },
@@ -47,6 +53,9 @@ export async function ratingsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Ratings'],
+        summary: 'Remover avaliação',
+        security: [{ bearerAuth: [] }],
         params: workspotIdParamsSchema,
       },
     },

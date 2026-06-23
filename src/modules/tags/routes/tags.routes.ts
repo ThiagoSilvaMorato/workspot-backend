@@ -17,6 +17,8 @@ export async function tagsRoutes(app: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Tags'],
+        summary: 'Listar todas as tags',
         response: { 200: listTagsResponseSchema },
       },
     },
@@ -29,6 +31,9 @@ export async function tagsRoutes(app: FastifyInstance) {
     {
       onRequest: [app.requireAdmin],
       schema: {
+        tags: ['Tags'],
+        summary: 'Criar tag (admin)',
+        security: [{ bearerAuth: [] }],
         body: createTagBodySchema,
         response: { 201: createTagResponseSchema },
       },

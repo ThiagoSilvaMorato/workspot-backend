@@ -1,7 +1,9 @@
 import fastify from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
-import { ZodTypeProvider, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
+import { ZodTypeProvider, jsonSchemaTransform, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import prismaPlugin from "./infra/database/prisma.js";
 import jwtPlugin from "./shared/plugins/jwt.plugin.js";
 import errorHandlerPlugin from "./shared/plugins/error-handler.plugin.js";
@@ -23,13 +25,44 @@ export function buildApp() {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
+  // OpenAPI documentation (must be registered before routes)
+  app.register(swagger, {
+    openapi: {
+      info: {
+        title: "WorkSpot API",
+        description: "API para descoberta de espaços de trabalho remoto",
+        version: "1.0.0",
+      },
+      servers: [{ url: "/api/v1" }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+            description: "Access token JWT obtido via POST /auth/login",
+          },
+        },
+      },
+    },
+    transform: jsonSchemaTransform,
+  });
+
+  app.register(swaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: true,
+    },
+  });
+
   // Infrastructure plugins (fp — shared across all scopes)
   app.register(prismaPlugin);
   app.register(jwtPlugin);
   app.register(errorHandlerPlugin);
 
-  // Framework plugins
-  app.register(helmet);
+  // Framework plugins — CSP disabled to allow Swagger UI inline scripts
+  app.register(helmet, { contentSecurityPolicy: false });
   app.register(cors);
 
   app.register(
