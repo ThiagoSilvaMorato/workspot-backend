@@ -3,18 +3,23 @@ import crypto from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import type { AuthRepository } from '../repository/auth.repository.js';
 import {
+  AppError,
   ConflictError,
   NotFoundError,
   UnauthorizedError,
 } from '../../../shared/errors/AppError.js';
 import { env } from '../../../config/env.js';
+import { buildPasswordResetEmail } from '../../../shared/email/templates/password-reset.template.js';
 import type {
   AuthResponse,
   AuthTokensResponse,
+  ChangePasswordInput,
+  ForgotPasswordInput,
   LoginInput,
   LogoutInput,
   RefreshInput,
   RegisterInput,
+  ResetPasswordInput,
   UserResponse,
 } from '../types/auth.types.js';
 
@@ -132,5 +137,61 @@ export function makeAuthService(repository: AuthRepository, app: FastifyInstance
     await repository.deleteRefreshTokenFamily(tokenRecord.familyId);
   }
 
-  return { register, login, refresh, logout };
+  async function forgotPassword(data: ForgotPasswordInput): Promise<void> {
+    const user = await repository.findUserByEmail(data.email);
+    if (!user) {
+      // Não revelar se email existe (evita user enumeration)
+      return;
+    }
+
+    await repository.deletePasswordResetTokensByUserId(user.id);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(
+      Date.now() + env.PASSWORD_RESET_EXPIRES_IN_MINUTES * 60 * 1000,
+    );
+    await repository.createPasswordResetToken(user.id, token, expiresAt);
+
+    const resetUrl = `${env.APP_URL}/recuperar-senha?token=${token}`;
+    const html = buildPasswordResetEmail(resetUrl, env.PASSWORD_RESET_EXPIRES_IN_MINUTES);
+    await app.sendEmail(user.email, 'Redefinição de senha - WorkSpot', html);
+  }
+
+  async function resetPassword(data: ResetPasswordInput): Promise<void> {
+    const tokenRecord = await repository.findPasswordResetToken(data.token);
+
+    if (!tokenRecord) {
+      throw new AppError('Token inválido ou expirado', 400);
+    }
+    if (tokenRecord.usedAt !== null) {
+      throw new AppError('Token já utilizado', 400);
+    }
+    if (tokenRecord.expiresAt < new Date()) {
+      await repository.deletePasswordResetTokensByUserId(tokenRecord.userId);
+      throw new AppError('Token expirado', 400);
+    }
+
+    const newPasswordHash = await bcrypt.hash(data.newPassword, 12);
+    await repository.markPasswordResetTokenUsed(tokenRecord.id);
+    await repository.updateUserPassword(tokenRecord.userId, newPasswordHash);
+    await repository.deleteAllRefreshTokensByUserId(tokenRecord.userId);
+  }
+
+  async function changePassword(userId: string, data: ChangePasswordInput): Promise<void> {
+    const user = await repository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundError('Usuário não encontrado');
+    }
+
+    const passwordMatch = await bcrypt.compare(data.currentPassword, user.passwordHash);
+    if (!passwordMatch) {
+      throw new UnauthorizedError('Senha atual incorreta');
+    }
+
+    const newPasswordHash = await bcrypt.hash(data.newPassword, 12);
+    await repository.updateUserPassword(userId, newPasswordHash);
+    await repository.deleteAllRefreshTokensByUserId(userId);
+  }
+
+  return { register, login, refresh, logout, forgotPassword, resetPassword, changePassword };
 }

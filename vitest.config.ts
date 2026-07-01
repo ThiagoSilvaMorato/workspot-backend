@@ -12,6 +12,10 @@ export default defineConfig({
       REFRESH_TOKEN_EXPIRES_IN_DAYS: '7',
       PORT: '3000',
       NODE_ENV: 'test',
+      RESEND_API_KEY: 'test-resend-key',
+      EMAIL_FROM: 'test@test.com',
+      APP_URL: 'http://localhost:3000',
+      PASSWORD_RESET_EXPIRES_IN_MINUTES: '30',
     },
     coverage: {
       provider: 'v8',

@@ -34,3 +34,17 @@ export interface AuthTokensResponse {
   readonly accessToken: string;
   readonly refreshToken: string;
 }
+
+export interface ForgotPasswordInput {
+  readonly email: string;
+}
+
+export interface ResetPasswordInput {
+  readonly token: string;
+  readonly newPassword: string;
+}
+
+export interface ChangePasswordInput {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}

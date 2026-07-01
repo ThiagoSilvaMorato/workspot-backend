@@ -6,6 +6,7 @@ import swaggerUi from "@fastify/swagger-ui";
 import { ZodTypeProvider, jsonSchemaTransform, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import prismaPlugin from "./infra/database/prisma.js";
 import jwtPlugin from "./shared/plugins/jwt.plugin.js";
+import emailPlugin from "./shared/plugins/email.plugin.js";
 import errorHandlerPlugin from "./shared/plugins/error-handler.plugin.js";
 import { authRoutes } from "./modules/auth/routes/auth.routes.js";
 import { usersRoutes } from "./modules/users/routes/users.routes.js";
@@ -59,6 +60,7 @@ export function buildApp() {
   // Infrastructure plugins (fp — shared across all scopes)
   app.register(prismaPlugin);
   app.register(jwtPlugin);
+  app.register(emailPlugin);
   app.register(errorHandlerPlugin);
 
   // Framework plugins — CSP disabled to allow Swagger UI inline scripts

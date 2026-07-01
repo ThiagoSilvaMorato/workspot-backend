@@ -22,12 +22,27 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  refreshTokens RefreshToken[]
-  workspots     WorkSpot[]
-  ratings       Rating[]
-  reviews       Review[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  workspots           WorkSpot[]
+  ratings             Rating[]
+  reviews             Review[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid(7))
+  token     String    @unique
+  userId    String    @map("user_id")
+  usedAt    DateTime? @map("used_at")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model RefreshToken {

@@ -1,4 +1,4 @@
-import type { PrismaClient, User, RefreshToken } from '@prisma/client';
+import type { PrismaClient, User, RefreshToken, PasswordResetToken } from '@prisma/client';
 import crypto from 'node:crypto';
 import { env } from '../../../config/env.js';
 
@@ -25,6 +25,12 @@ export interface AuthRepository {
   createRefreshTokenInFamily(familyId: string, userId: string): Promise<RefreshToken>;
   deleteRefreshTokenFamily(familyId: string): Promise<void>;
   deleteRefreshToken(id: string): Promise<void>;
+  deleteAllRefreshTokensByUserId(userId: string): Promise<void>;
+  updateUserPassword(userId: string, passwordHash: string): Promise<void>;
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<PasswordResetToken>;
+  findPasswordResetToken(token: string): Promise<PasswordResetToken | null>;
+  markPasswordResetTokenUsed(id: string): Promise<void>;
+  deletePasswordResetTokensByUserId(userId: string): Promise<void>;
 }
 
 export function makeAuthRepository(prisma: PrismaClient): AuthRepository {
@@ -85,6 +91,38 @@ export function makeAuthRepository(prisma: PrismaClient): AuthRepository {
 
     async deleteRefreshToken(id) {
       await prisma.refreshToken.delete({ where: { id } });
+    },
+
+    async deleteAllRefreshTokensByUserId(userId) {
+      await prisma.refreshToken.deleteMany({ where: { userId } });
+    },
+
+    async updateUserPassword(userId, passwordHash) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+    },
+
+    createPasswordResetToken(userId, token, expiresAt) {
+      return prisma.passwordResetToken.create({
+        data: { token, userId, expiresAt },
+      });
+    },
+
+    findPasswordResetToken(token) {
+      return prisma.passwordResetToken.findUnique({ where: { token } });
+    },
+
+    async markPasswordResetTokenUsed(id) {
+      await prisma.passwordResetToken.update({
+        where: { id },
+        data: { usedAt: new Date() },
+      });
+    },
+
+    async deletePasswordResetTokensByUserId(userId) {
+      await prisma.passwordResetToken.deleteMany({ where: { userId } });
     },
   };
 }

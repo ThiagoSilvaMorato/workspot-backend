@@ -44,3 +44,21 @@ export const refreshResponseSchema = z.object({
     refreshToken: z.string(),
   }),
 });
+
+export const forgotPasswordBodySchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordBodySchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(8).max(100),
+});
+
+export const changePasswordBodySchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(100),
+});
+
+export const messageResponseSchema = z.object({
+  message: z.string(),
+});

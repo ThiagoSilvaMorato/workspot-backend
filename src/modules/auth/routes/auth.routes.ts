@@ -3,13 +3,17 @@ import { makeAuthRepository } from '../repository/auth.repository.js';
 import { makeAuthService } from '../service/auth.service.js';
 import { makeAuthController } from '../controller/auth.controller.js';
 import {
+  changePasswordBodySchema,
+  forgotPasswordBodySchema,
   loginBodySchema,
   loginResponseSchema,
   logoutBodySchema,
+  messageResponseSchema,
   refreshBodySchema,
   refreshResponseSchema,
   registerBodySchema,
   registerResponseSchema,
+  resetPasswordBodySchema,
 } from '../schemas/auth.schemas.js';
 
 export async function authRoutes(app: FastifyInstance) {
@@ -68,5 +72,46 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     controller.logout,
+  );
+
+  app.post(
+    '/forgot-password',
+    {
+      schema: {
+        tags: ['Auth'],
+        summary: 'Solicitar recuperação de senha por email',
+        body: forgotPasswordBodySchema,
+        response: { 200: messageResponseSchema },
+      },
+    },
+    controller.forgotPassword,
+  );
+
+  app.post(
+    '/reset-password',
+    {
+      schema: {
+        tags: ['Auth'],
+        summary: 'Redefinir senha via token do email (usuário não autenticado)',
+        body: resetPasswordBodySchema,
+        response: { 200: messageResponseSchema },
+      },
+    },
+    controller.resetPassword,
+  );
+
+  app.put(
+    '/change-password',
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        tags: ['Auth'],
+        summary: 'Trocar senha (usuário autenticado, exige senha atual)',
+        security: [{ bearerAuth: [] }],
+        body: changePasswordBodySchema,
+        response: { 200: messageResponseSchema },
+      },
+    },
+    controller.changePassword,
   );
 }
